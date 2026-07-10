@@ -246,8 +246,37 @@
     margin-top: 8px;
     font-size: 12px;
     color: var(--ink-dim);
+    position: relative;
+    display: inline-block;
   }
   .progress-caption .n { color: var(--orange-bright); font-weight: 700; }
+  .progress-caption .n.total-hit {
+    animation: totalPulse 0.5s ease;
+  }
+  @keyframes totalPulse {
+    0% { color: #ff4d4d; transform: scale(1.35); display: inline-block; }
+    100% { color: var(--orange-bright); transform: scale(1); }
+  }
+  .break-float {
+    position: absolute;
+    left: 50%;
+    top: -4px;
+    transform: translate(-50%, 0);
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    color: #ff4d4d;
+    text-shadow: 0 0 8px rgba(255,77,77,0.7);
+    pointer-events: none;
+    white-space: nowrap;
+    animation: breakFloat 1.1s ease forwards;
+  }
+  @keyframes breakFloat {
+    0%   { opacity: 0; transform: translate(-50%, 0) scale(0.8); }
+    15%  { opacity: 1; transform: translate(-50%, -10px) scale(1.05); }
+    75%  { opacity: 1; transform: translate(-50%, -26px) scale(1); }
+    100% { opacity: 0; transform: translate(-50%, -38px) scale(0.95); }
+  }
 
   /* ---------- responsive ---------- */
   @media (max-width: 720px) {
@@ -471,6 +500,7 @@ function formatDate(d) {
   const months = ['JANUARY','FEBRUARY','MARCH','APRIL','MAY','JUNE','JULY','AUGUST','SEPTEMBER','OCTOBER','NOVEMBER','DECEMBER'];
   return `${months[d.getMonth()]} ${pad(d.getDate())}, ${d.getFullYear()}`;
 }
+let brokenThreadCount = 0;
 function updateUI() {
   const info = getYearInfo();
   document.getElementById('todayDate').textContent = formatDate(info.now);
@@ -487,7 +517,7 @@ function updateUI() {
   document.getElementById('progressPct').textContent = info.pctGone.toFixed(2) + '%';
   document.getElementById('progressFill').style.width = info.pctGone.toFixed(2) + '%';
   document.getElementById('progressDay').textContent = info.dayOfYear;
-  document.getElementById('progressTotal').textContent = info.totalDays;
+  document.getElementById('progressTotal').textContent = Math.max(0, info.totalDays - brokenThreadCount);
   return info;
 }
 setInterval(updateUI, 1000);
@@ -779,6 +809,27 @@ function triggerSnap(th) {
     pB.oldX -= (dx/dist) * 25; pB.oldY -= (dy/dist) * 25; 
     if (grabbedThread === th) onPointerUp();
     th.isSleeping = false; th.sleepCounter = 0;
+    if (!th.countedBroken) {
+      th.countedBroken = true;
+      onThreadBroken();
+    }
+}
+
+function onThreadBroken() {
+  brokenThreadCount++;
+  const totalEl = document.getElementById('progressTotal');
+  const captionEl = document.querySelector('.progress-caption');
+  if (!totalEl || !captionEl) return;
+
+  totalEl.classList.remove('total-hit');
+  void totalEl.offsetWidth;
+  totalEl.classList.add('total-hit');
+
+  const floatEl = document.createElement('span');
+  floatEl.className = 'break-float';
+  floatEl.textContent = '-1';
+  captionEl.appendChild(floatEl);
+  floatEl.addEventListener('animationend', () => floatEl.remove());
 }
 
 /* ---------------------------------------------------------------------
