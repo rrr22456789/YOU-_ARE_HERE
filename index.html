@@ -1,0 +1,901 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>End of Year Countdown</title>
+<style>
+  :root {
+    --bg: #060606;
+    --orange: #d9540a;
+    --orange-bright: #ff8a3d;
+    --white: #f2f2f0;
+    --gray: #4a4a4a;
+    --gray-dim: #2a2a2a;
+    --ink-dim: #8a8a8a;
+    --line: rgba(255,255,255,0.08);
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: var(--bg);
+    color: var(--white);
+    font-family: 'Arial Narrow', Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+  }
+
+  .wrap {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 20px 24px 40px;
+  }
+
+  /* ---------- header ---------- */
+  .topbar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 6px 0 22px;
+  }
+  .topbar .icon { font-size: 22px; }
+  .topbar .label {
+    font-size: 15px;
+    letter-spacing: 3px;
+    font-weight: 700;
+    text-transform: uppercase;
+  }
+  .topbar .label .accent { color: var(--orange); }
+
+  /* ---------- headline ---------- */
+  .headline {
+    text-align: center;
+    font-size: 13px;
+    letter-spacing: 6px;
+    color: #cfcfcf;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+    font-weight: 600;
+  }
+
+  .stat-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: clamp(16px, 4vw, 56px);
+    flex-wrap: wrap;
+    padding: 8px 0 26px;
+  }
+
+  .date-block {
+    text-align: left;
+    border-left: 3px solid var(--orange);
+    padding-left: 16px;
+    min-width: 180px;
+  }
+  .date-block .eyebrow {
+    font-size: 11px;
+    letter-spacing: 2px;
+    color: var(--ink-dim);
+    text-transform: uppercase;
+  }
+  .date-block .date {
+    font-size: clamp(16px, 2.2vw, 20px);
+    color: var(--orange-bright);
+    font-weight: 800;
+    letter-spacing: 1px;
+    margin: 4px 0;
+  }
+  .date-block .subline {
+    font-size: 11px;
+    color: var(--ink-dim);
+    letter-spacing: 1.5px;
+  }
+
+  .days-hero {
+    display: flex;
+    align-items: baseline;
+    gap: 18px;
+  }
+  .days-hero .number {
+    font-size: clamp(64px, 12vw, 130px);
+    font-weight: 900;
+    line-height: 0.85;
+    color: var(--white);
+    letter-spacing: -2px;
+    background: linear-gradient(180deg, #ffffff 0%, #cfcfcf 60%, #9d9d9d 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .days-hero .label-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .days-hero .label-stack .l1 {
+    font-size: clamp(20px, 3vw, 32px);
+    font-weight: 800;
+  }
+  .days-hero .label-stack .l1 span { color: var(--orange); }
+  .days-hero .label-stack .l2 {
+    font-size: 11px;
+    letter-spacing: 2px;
+    color: var(--ink-dim);
+    text-transform: uppercase;
+  }
+
+  .clock-block {
+    display: flex;
+    gap: 6px;
+    align-items: baseline;
+    font-variant-numeric: tabular-nums;
+  }
+  .clock-block .seg {
+    text-align: center;
+  }
+  .clock-block .seg .val {
+    font-size: clamp(26px, 4vw, 40px);
+    font-weight: 800;
+    color: var(--white);
+  }
+  .clock-block .seg .cap {
+    font-size: 9px;
+    letter-spacing: 1.5px;
+    color: var(--orange);
+    text-transform: uppercase;
+    display: block;
+    margin-top: 2px;
+  }
+  .clock-block .colon {
+    font-size: clamp(22px, 3.5vw, 34px);
+    font-weight: 800;
+    color: #555;
+    padding-bottom: 14px;
+  }
+
+  /* ---------- section headers above rope ---------- */
+  .rope-caption-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    max-width: 100%;
+    margin: 0 auto 8px;
+    padding: 0 2%;
+  }
+  .rope-caption {
+    font-size: clamp(9px, 1.4vw, 12px);
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: #cfcfcf;
+  }
+  .rope-caption .pct {
+    display: block;
+    color: var(--orange-bright);
+    font-weight: 800;
+    font-size: clamp(11px, 1.8vw, 15px);
+    margin-top: 2px;
+  }
+  .rope-caption.left { text-align: left; }
+  .rope-caption.right { text-align: right; }
+  .rope-caption.today {
+    text-align: center;
+    color: var(--white);
+  }
+  .rope-caption.today .pct { color: var(--white); }
+
+  /* ---------- rope canvas ---------- */
+  .rope-frame {
+    position: relative;
+    width: 100%;
+    height: clamp(280px, 46vw, 560px);
+    border-top: 1px solid var(--line);
+    touch-action: none; /* Prevents scroll when dragging */
+    overflow: visible; /* let a stretched thread draw past the resting frame height */
+  }
+  #ropeCanvas {
+    display: block;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    cursor: grab;
+    touch-action: none;
+    pointer-events: auto;
+  }
+  #ropeCanvas:active {
+    cursor: grabbing;
+  }
+
+  /* ---------- progress ---------- */
+  .progress-section {
+    position: relative; /* Ye z-index ko kaam karne ke liye zaroori hai */
+  max-width: 640px;
+  margin: 34px auto 0;
+  padding: 0 4px;
+  z-index: 99; /* Isse progress bar canvas ke upar (front mein) aa jayegi */
+}  .progress-title {
+    font-size: 12px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: #cfcfcf;
+    margin-bottom: 6px;
+  }
+  .progress-pct {
+    font-size: clamp(28px, 5vw, 36px);
+    font-weight: 900;
+    color: var(--orange-bright);
+    margin-bottom: 10px;
+  }
+  .progress-track {
+    height: 10px;
+    border-radius: 6px;
+    background: var(--gray-dim);
+    overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--orange) 0%, var(--orange-bright) 100%);
+    border-radius: 6px;
+    transition: width 0.6s ease;
+  }
+  .progress-caption {
+    margin-top: 8px;
+    font-size: 12px;
+    color: var(--ink-dim);
+  }
+  .progress-caption .n { color: var(--orange-bright); font-weight: 700; }
+
+  /* ---------- responsive ---------- */
+  @media (max-width: 720px) {
+    .wrap { padding: 16px 14px 32px; }
+    .stat-row { gap: 14px; }
+    .date-block { border-left-width: 2px; padding-left: 12px; min-width: 0; }
+    .days-hero { gap: 10px; }
+    .clock-block { gap: 4px; }
+    .rope-frame { height: clamp(220px, 62vw, 420px); }
+    .rope-caption-row { padding: 0 1%; }
+  }
+
+  @media (max-width: 420px) {
+    .stat-row {
+      flex-direction: column;
+      align-items: center;
+      gap: 16px;
+    }
+    .date-block { text-align: center; border-left: none; border-top: 3px solid var(--orange); padding: 10px 0 0; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="topbar">
+    <span class="icon">?</span>
+    <span class="label">END OF YEAR <span class="accent">COUNTDOWN</span></span>
+  </div>
+
+  <div class="headline">THIS YEAR IS RUNNING OUT</div>
+
+  <div class="stat-row">
+    <div class="date-block">
+      <div class="eyebrow">Today is</div>
+      <div class="date" id="todayDate">�</div>
+      <div class="subline" id="dayOfYear">DAY � OF 365</div>
+    </div>
+
+    <div class="days-hero">
+      <div class="number" id="daysLeftNum">0</div>
+      <div class="label-stack">
+        <div class="l1"><span>DAYS</span> LEFT</div>
+        <div class="l2">to end this year</div>
+      </div>
+    </div>
+
+    <div class="clock-block">
+      <div class="seg"><span class="val" id="hh">00</span><span class="cap">Hours</span></div>
+      <div class="colon">:</div>
+      <div class="seg"><span class="val" id="mm">00</span><span class="cap">Minutes</span></div>
+      <div class="colon">:</div>
+      <div class="seg"><span class="val" id="ss">00</span><span class="cap">Seconds</span></div>
+    </div>
+  </div>
+
+  <div class="rope-caption-row">
+    <div class="rope-caption left">
+      <span id="daysGoneLabel">� DAYS GONE</span>
+      <span class="pct" id="daysGonePct">�%</span>
+    </div>
+    <div class="rope-caption today">
+      TODAY<br>DAY <span id="todayDayNum">�</span>
+    </div>
+    <div class="rope-caption right">
+      <span id="daysLeftLabel">� DAYS LEFT</span>
+      <span class="pct" id="daysLeftPct">�%</span>
+    </div>
+  </div>
+
+  <div class="rope-frame">
+    <canvas id="ropeCanvas"></canvas>
+  </div>
+
+  <div class="progress-section">
+    <div class="progress-title">Year Progress</div>
+    <div class="progress-pct" id="progressPct">0%</div>
+    <div class="progress-track">
+      <div class="progress-fill" id="progressFill" style="width:0%"></div>
+    </div>
+    <div class="progress-caption"><span class="n" id="progressDay">0</span> / <span id="progressTotal">365</span> days</div>
+  </div>
+
+</div>
+
+<script>
+/* ================= date / countdown logic ================= */
+function getYearInfo() {
+  const now = new Date();
+  const year = now.getFullYear();
+  const start = new Date(year, 0, 1);
+  const end = new Date(year + 1, 0, 1);
+  const isLeap = (new Date(year, 1, 29).getMonth() === 1);
+  const totalDays = isLeap ? 366 : 365;
+  const msPerDay = 24 * 60 * 60 * 1000;
+  const dayOfYear = Math.floor((now - start) / msPerDay) + 1;
+  const daysLeft = totalDays - dayOfYear;
+  const endOfYear = new Date(year, 11, 31, 23, 59, 59, 999);
+  const diffMs = endOfYear - now;
+  const hours = Math.floor(diffMs / (1000 * 60 * 60)) % 24;
+  const minutes = Math.floor(diffMs / (1000 * 60)) % 60;
+  const seconds = Math.floor(diffMs / 1000) % 60;
+  return { now, totalDays, dayOfYear, daysLeft, hours, minutes, seconds, pctGone: (dayOfYear / totalDays) * 100, pctLeft: (daysLeft / totalDays) * 100 };
+}
+function pad(n) { return String(n).padStart(2, '0'); }
+function formatDate(d) {
+  const months = ['JANUARY','FEBRUARY','MARCH','APRIL','MAY','JUNE','JULY','AUGUST','SEPTEMBER','OCTOBER','NOVEMBER','DECEMBER'];
+  return `${months[d.getMonth()]} ${pad(d.getDate())}, ${d.getFullYear()}`;
+}
+function updateUI() {
+  const info = getYearInfo();
+  document.getElementById('todayDate').textContent = formatDate(info.now);
+  document.getElementById('dayOfYear').textContent = `DAY ${info.dayOfYear} OF ${info.totalDays}`;
+  document.getElementById('daysLeftNum').textContent = info.daysLeft;
+  document.getElementById('hh').textContent = pad(info.hours);
+  document.getElementById('mm').textContent = pad(info.minutes);
+  document.getElementById('ss').textContent = pad(info.seconds);
+  document.getElementById('daysGoneLabel').textContent = `${info.dayOfYear} DAYS GONE`;
+  document.getElementById('daysGonePct').textContent = info.pctGone.toFixed(2) + '%';
+  document.getElementById('daysLeftLabel').textContent = `${info.daysLeft} DAYS LEFT`;
+  document.getElementById('daysLeftPct').textContent = info.pctLeft.toFixed(2) + '%';
+  document.getElementById('todayDayNum').textContent = info.dayOfYear;
+  document.getElementById('progressPct').textContent = info.pctGone.toFixed(2) + '%';
+  document.getElementById('progressFill').style.width = info.pctGone.toFixed(2) + '%';
+  document.getElementById('progressDay').textContent = info.dayOfYear;
+  document.getElementById('progressTotal').textContent = info.totalDays;
+  return info;
+}
+setInterval(updateUI, 1000);
+updateUI();
+
+/* =====================================================================
+   ROPE CANVAS � TUNED PHYSICS & FIXED CONFIGURATION
+===================================================================== */
+const canvas = document.getElementById('ropeCanvas');
+const ctx = canvas.getContext('2d', { alpha: false }); // Disabled alpha channel for raw speed
+let W, H, DPR, canvasH, bufferH;
+
+// Touch/coarse-pointer devices (phones/tablets) get expensive shadowBlur cost
+// disproportionately: mobile canvas implementations frequently can't hardware-
+// accelerate shadow blur the way desktop compositors do. This does not change
+// anything on desktop/mouse devices.
+const IS_COARSE_POINTER = window.matchMedia && window.matchMedia('(pointer: coarse)').matches;
+
+// FIXED QUALITY SETTINGS
+const THREAD_COUNT = 50; 
+const SEGMENTS = 8;
+let threads = [];
+
+function getRopeColor(isPast, isToday) {
+  if (isToday) return { base: '#9a9a9a', mid: '#e8e8e8', hi: '#ffffff', glow: 'rgba(255,255,255,0.65)', knot: '#dcdcdc', isGlow: true };
+  if (isPast) return { base: '#7a2e00', mid: '#c9540a', hi: '#ffb347', glow: 'rgba(255,140,20,0.45)', knot: '#8a3a08', isGlow: true };
+  return { base: '#232323', mid: '#4a4a4a', hi: '#6b6b6b', glow: 'rgba(120,120,120,0.10)', knot: '#3a3a3a', isGlow: false };
+}
+
+function makeParticle(x, y, pinned, mass) {
+  const finalMass = mass || 1;
+  return { x, y, oldX: x, oldY: y, pinned: !!pinned, mass: finalMass, invMass: pinned ? 0 : 1 / finalMass };
+}
+
+function buildThreads() {
+  threads = [];
+  const centerIndex = Math.floor((THREAD_COUNT - 1) / 2);
+  const marginX = Math.max(W * 0.02, 10);
+  const usableW = W - marginX * 2;
+  const topY = Math.max(H * 0.03, 6);
+
+  for (let i = 0; i < THREAD_COUNT; i++) {
+    const t = THREAD_COUNT === 1 ? 0.5 : i / (THREAD_COUNT - 1);
+    const x = marginX + t * usableW;
+    const isToday = (i === centerIndex);
+    const isPast = (i < centerIndex);
+    const color = getRopeColor(isPast, isToday);
+    const totalLength = H * (0.62 + Math.random() * 0.18);
+    const segLength = totalLength / SEGMENTS;
+    const particles = [];
+    
+    for (let s = 0; s <= SEGMENTS; s++) {
+      const py = topY + s * segLength;
+      const mass = (s === SEGMENTS) ? 2.6 : 1;
+      particles.push(makeParticle(x, py, s === 0, mass));
+    }
+    const constraints = [];
+    for (let s = 0; s < SEGMENTS; s++) {
+      constraints.push({ a: s, b: s + 1, restLength: segLength });
+    }
+    
+    threads.push({
+      x0: x, topY, length: totalLength, segLength, color, isToday,
+      thickness: (isToday ? 3.6 : 2.6 + Math.random() * 1.1),
+      particles, constraints, phase: Math.random() * Math.PI * 2, knotSeed: Math.random(),
+      isSleeping: false, sleepCounter: 0,
+      restLengthTotal: segLength * SEGMENTS, tension: 0, breakThreshold: 0.98,
+      state: "normal", damage: 0.0, breakIndex: -1,
+      cachedPaths: null // Path2D cache
+    });
+  }
+}
+
+function resize() {
+  // Cap DPR: canvas buffer size scales with DPR^2. Phones commonly report
+  // 2.5-3x vs typical desktop 1-2x, meaning up to ~9x more physical pixels
+  // to fill/stroke/blur every frame at an identical CSS size. Capping at 2
+  // is visually indistinguishable on a canvas this size but removes the
+  // biggest mobile-specific rendering cost.
+  DPR = Math.min(window.devicePixelRatio || 1, 2);
+  const rect = canvas.parentElement.getBoundingClientRect();
+  W = rect.width; H = rect.height;
+  // Mobile fires many more resize events than desktop (URL bar collapse,
+  // orientation change, keyboard toggle) and can call this mid-reflow with
+  // a transient 0 size. Skip rebuilding on that pass rather than baking a
+  // degenerate thread layout that only self-corrects on the next resize.
+  if (W <= 0 || H <= 0) return;
+  // The visible frame (H) only needs to fit the resting thread length, but a
+  // dragged thread can stretch well past that. Give the canvas extra drawing
+  // room below the frame (bufferH) so a pulled-out thread stays on-screen
+  // instead of being clipped at the frame's bottom edge.
+  bufferH = H * 1.2;
+  canvasH = H + bufferH;
+  canvas.style.height = canvasH + 'px';
+  canvas.width = Math.round(W * DPR); canvas.height = Math.round(canvasH * DPR);
+  ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+  buildThreads();
+}
+resize();
+window.addEventListener('resize', resize);
+
+/* ---------------------------------------------------------------------
+   POINTER EVENTS & CAPTURE API
+--------------------------------------------------------------------- */
+const pointer = { x: -9999, y: -9999, prevX: -9999, prevY: -9999, vx: 0, vy: 0, active: false, isDown: false };
+let grabbedNode = null, grabbedThread = null;
+const GRAB_RADIUS = 40; 
+
+function setPointerFromEvent(clientX, clientY) {
+  const rect = canvas.getBoundingClientRect();
+  pointer.prevX = pointer.x;
+  pointer.prevY = pointer.y;
+  pointer.x = clientX - rect.left;
+  pointer.y = clientY - rect.top;
+  pointer.active = true;
+}
+
+canvas.addEventListener('pointerdown', (e) => {
+  canvas.setPointerCapture(e.pointerId); // Locks pointer for edge-to-edge drags
+  setPointerFromEvent(e.clientX, e.clientY);
+  pointer.isDown = true;
+  
+  let closestDistSq = GRAB_RADIUS * GRAB_RADIUS, closest = null, threadOfClosest = null;
+  for (let i = 0; i < threads.length; i++) {
+    const th = threads[i];
+    if (Math.abs(th.x0 - pointer.x) > INFLUENCE_RADIUS + 40) continue;
+    for (let j = 1; j < th.particles.length; j++) {
+      const p = th.particles[j];
+      if (p.pinned) continue; 
+      const dx = pointer.x - p.x, dy = pointer.y - p.y;
+      const distSq = dx * dx + dy * dy;
+      if (distSq < closestDistSq) { closestDistSq = distSq; closest = p; threadOfClosest = th; }
+    }
+  }
+  if (closest) { grabbedNode = closest; grabbedThread = threadOfClosest; grabbedThread.isSleeping = false; grabbedThread.cachedPaths = null; }
+});
+
+canvas.addEventListener('pointermove', (e) => {
+  if (!pointer.isDown) return; 
+  setPointerFromEvent(e.clientX, e.clientY);
+});
+
+function onPointerUp(e) {
+  if (e) canvas.releasePointerCapture(e.pointerId);
+  pointer.isDown = false; pointer.active = false; grabbedNode = null; grabbedThread = null;
+}
+canvas.addEventListener('pointerup', onPointerUp);
+canvas.addEventListener('pointercancel', onPointerUp);
+
+
+/* ---------------------------------------------------------------------
+   PHYSICS ENGINE (Fully Tuned for 1x Responsiveness)
+--------------------------------------------------------------------- */
+const GRAVITY = 620;
+const DAMPING = 0.996;            // Increased to remove visual "syrup" drag
+const CONSTRAINT_ITERATIONS = 4;  // Kept at 4 to preserve CPU efficiency
+const INFLUENCE_RADIUS = 70;
+const FORCE_STRENGTH = 0.042;     // Increased input force to overcome the heavy knot mass instantly
+const MAX_DT = 1 / 30;            
+const ELASTIC_STIFFNESS = 0.85;   // Increased to allow immediate wave propagation and snappy rebound
+const ELASTIC_LIMIT = 1.3;
+const VELOCITY_LIMIT = 110;     
+
+function applyPointerForces(dt) {
+  if (!pointer.active) return;
+  if (grabbedNode) {
+     // Unity-style Verlet grab: set position directly to cursor, and stamp
+     // oldX/oldY to the PREVIOUS cursor position (not the previous lerped
+     // position). This keeps (x - oldX) truthfully equal to real cursor
+     // velocity every frame of the drag, so release requires no special
+     // handling � the existing integrator already has correct velocity.
+     grabbedNode.oldX = grabbedNode.x;
+     grabbedNode.oldY = grabbedNode.y;
+     grabbedNode.x = pointer.x;
+     grabbedNode.y = pointer.y;
+     if (pointer.prevX > -9000) {
+       grabbedNode.oldX = pointer.prevX;
+       grabbedNode.oldY = pointer.prevY;
+     }
+     if (grabbedThread) { grabbedThread.isSleeping = false; grabbedThread.sleepCounter = 0; grabbedThread.cachedPaths = null; }
+  }
+  const speedSq = pointer.vx * pointer.vx + pointer.vy * pointer.vy;
+  if (speedSq < 0.1) return;
+
+  for (let i = 0; i < threads.length; i++) {
+    const th = threads[i];
+    if (Math.abs(th.x0 - pointer.x) > INFLUENCE_RADIUS + 40) continue;
+    let woke = false;
+    for (let j = 1; j < th.particles.length; j++) {
+      const p = th.particles[j];
+      if (p === grabbedNode) continue; 
+      const dx = pointer.x - p.x, dy = pointer.y - p.y, distSq = dx * dx + dy * dy;
+      if (distSq < INFLUENCE_RADIUS * INFLUENCE_RADIUS) {
+        const falloff = 1 - Math.sqrt(distSq) / INFLUENCE_RADIUS;
+        p.x += pointer.vx * FORCE_STRENGTH * falloff * p.invMass;
+        p.y += pointer.vy * FORCE_STRENGTH * falloff * p.invMass * 0.5;
+        woke = true;
+      }
+    }
+    if (woke) { th.isSleeping = false; th.sleepCounter = 0; th.cachedPaths = null; }
+  }
+}
+
+function verletIntegrate(dt) {
+  const dt2 = dt * dt, gravDt = GRAVITY * dt2, maxVSq = VELOCITY_LIMIT * VELOCITY_LIMIT; 
+  for (const th of threads) {
+    let maxSqVelocity = 0;
+    for (const p of th.particles) {
+      if (p.pinned) continue;
+      if (th.isSleeping) { p.oldX = p.x; p.oldY = p.y; continue; }
+      let vx = (p.x - p.oldX) * DAMPING, vy = (p.y - p.oldY) * DAMPING;
+      const vSq = vx * vx + vy * vy;
+      if (vSq > maxVSq) { const scale = VELOCITY_LIMIT / Math.sqrt(vSq); vx *= scale; vy *= scale; }
+      const nextX = p.x + vx; const nextY = p.y + vy + gravDt; 
+      
+      p.oldY = p.y; p.oldX = p.x;
+      p.x = nextX; p.y = nextY;
+      if (vSq > maxSqVelocity) maxSqVelocity = vSq;
+    }
+    if (!th.isSleeping) {
+      // Adjusted sleep threshold for reduced damping micro-oscillations
+      if (maxSqVelocity < 0.015) {
+        th.sleepCounter++;
+        if (th.sleepCounter > 15 && th.state === "normal") th.isSleeping = true;
+      } else { th.sleepCounter = 0; th.cachedPaths = null; }
+    }
+  }
+}
+
+function satisfyConstraints() {
+  for (const th of threads) {
+    if (th.isSleeping) continue;
+    const pts = th.particles;
+    for (let iter = 0; iter < CONSTRAINT_ITERATIONS; iter++) {
+      for (const c of th.constraints) {
+        const a = pts[c.a], b = pts[c.b], dx = b.x - a.x, dy = b.y - a.y;
+        const dist = Math.sqrt(dx * dx + dy * dy) || 0.0001;
+        let stiffness = 1.0; 
+        if (dist > c.restLength) {
+            const stretchRatio = dist / c.restLength;
+            if (stretchRatio < ELASTIC_LIMIT) {
+                let t = Math.min(Math.max((stretchRatio - 1.0) / (ELASTIC_LIMIT - 1.0), 0), 1);
+                stiffness = ELASTIC_STIFFNESS + (1.0 - ELASTIC_STIFFNESS) * (t * t);
+            }
+        }
+        const diff = ((dist - c.restLength) / dist) * stiffness;
+        const totalInvMass = a.invMass + b.invMass;
+        if (totalInvMass === 0) continue;
+        const cX = dx * diff, cY = dy * diff;
+        if (!a.pinned) { a.x += cX * (a.invMass / totalInvMass); a.y += cY * (a.invMass / totalInvMass); }
+        if (!b.pinned) { b.x -= cX * (b.invMass / totalInvMass); b.y -= cY * (b.invMass / totalInvMass); }
+      }
+      pts[0].x = th.x0; pts[0].y = th.topY;
+    }
+  }
+}
+
+function calculateTension(dt) {
+  for (const th of threads) {
+    if (th.state === "broken" || (th.isSleeping && !grabbedNode && th.state !== "breaking")) { th.tension = 0; continue; }
+    let currentLength = 0; const pts = th.particles;
+    for (let i = 0; i < th.constraints.length; i++) {
+      const c = th.constraints[i], dx = pts[c.b].x - pts[c.a].x, dy = pts[c.b].y - pts[c.a].y;
+      currentLength += Math.sqrt(dx * dx + dy * dy);
+    }
+    const maxStretch = th.restLengthTotal * ELASTIC_LIMIT;
+    if (currentLength > th.restLengthTotal) th.tension = Math.max(0, Math.min(1, (currentLength - th.restLengthTotal) / (maxStretch - th.restLengthTotal)));
+    else th.tension = 0;
+
+    if (th.tension >= th.breakThreshold) th.state = "breaking";
+    else if (th.tension < th.breakThreshold) th.state = th.tension > 0.1 ? "stretching" : "normal";
+
+    if (th.state === "breaking") {
+       th.damage += (0.6 + ((th.tension - th.breakThreshold) / 0.03) * 2.0) * dt;
+       th.cachedPaths = null;
+    } else if (th.damage > 0) { th.damage -= 0.3 * dt; if (th.damage < 0) th.damage = 0; th.cachedPaths = null; }
+    if (th.damage >= 1.0) triggerSnap(th);
+  }
+}
+
+function triggerSnap(th) {
+    th.state = "broken"; th.damage = 1.0; th.tension = 0; th.cachedPaths = null;
+    const bIdx = Math.floor(SEGMENTS * 0.6) + Math.floor(Math.random() * (SEGMENTS * 0.4));
+    th.breakIndex = bIdx;
+    th.constraints = th.constraints.filter(c => !(c.a === bIdx && c.b === bIdx + 1));
+    const pA = th.particles[bIdx], pB = th.particles[bIdx + 1];
+    const dx = pB.x - pA.x, dy = pB.y - pA.y, dist = Math.sqrt(dx*dx + dy*dy) || 1;
+    pA.oldX += (dx/dist) * 25; pA.oldY += (dy/dist) * 25; 
+    pB.oldX -= (dx/dist) * 25; pB.oldY -= (dy/dist) * 25; 
+    if (grabbedThread === th) onPointerUp();
+    th.isSleeping = false; th.sleepCounter = 0;
+}
+
+/* ---------------------------------------------------------------------
+   RENDERER � CACHING SYSTEM (Preserved)
+--------------------------------------------------------------------- */
+/* ---------------------------------------------------------------------
+   SMOOTH CURVE HELPER
+   Straight lineTo-per-segment between only 8-12 points reads as faceted
+   "matchstick" corners rather than a soft rope. Route through each point's
+   midpoint with quadraticCurveTo so the line bends continuously instead of
+   kinking at every particle.
+--------------------------------------------------------------------- */
+function smoothPathTo(target, xs, ys, s, e) {
+  const n = e - s;
+  if (n < 1) return;
+  target.moveTo(xs[s], ys[s]);
+  if (n === 1) { target.lineTo(xs[e], ys[e]); return; }
+  for (let i = s; i < e; i++) {
+    const curX = xs[i], curY = ys[i];
+    const nextX = xs[i + 1], nextY = ys[i + 1];
+    const midX = (curX + nextX) / 2, midY = (curY + nextY) / 2;
+    if (i === s) {
+      target.quadraticCurveTo(curX, curY, midX, midY);
+    } else {
+      target.quadraticCurveTo(curX, curY, midX, midY);
+    }
+  }
+  target.quadraticCurveTo(xs[e - 1], ys[e - 1], xs[e], ys[e]);
+}
+
+function buildSleepCache(th) {
+    const pts = th.particles;
+    const segments = (th.breakIndex === -1) ? [{ start: 0, end: pts.length - 1 }] : 
+      [{ start: 0, end: th.breakIndex }, { start: th.breakIndex + 1, end: pts.length - 1 }];
+    
+    let cache = { helixPaths: [], highlightPaths: [] };
+    
+    for (const seg of segments) {
+      const s = seg.start, e = seg.end;
+      if (e - s < 1) continue;
+      
+      for (let k = 0; k < 3; k++) {
+        const path = new Path2D();
+        const twistOffset = (k / 3) * Math.PI * 2;
+        const xs = new Float32Array(pts.length), ys = new Float32Array(pts.length);
+        for (let i = s; i <= e; i++) {
+          const u = i / (pts.length - 1);
+          const helix = Math.sin(u * 40 + twistOffset + th.phase * 3) * (th.thickness * 0.42);
+          xs[i] = pts[i].x + helix; ys[i] = pts[i].y;
+        }
+        smoothPathTo(path, xs, ys, s, e);
+        cache.helixPaths.push({ path: path, s: s, e: e });
+      }
+      
+      const hlPath = new Path2D();
+      {
+        const xs = new Float32Array(pts.length), ys = new Float32Array(pts.length);
+        for (let i = s; i <= e; i++) { xs[i] = pts[i].x; ys[i] = pts[i].y; }
+        smoothPathTo(hlPath, xs, ys, s, e);
+      }
+      cache.highlightPaths.push({ path: hlPath });
+    }
+    th.cachedPaths = cache;
+}
+
+function drawRopeStrands(th, time) {
+  const pts = th.particles;
+  const isBroken = th.breakIndex !== -1;
+  
+  if (th.isSleeping && !isBroken) {
+      if (!th.cachedPaths) buildSleepCache(th);
+  }
+
+  ctx.save();
+  // On touch devices, only the "today" thread keeps its shadowBlur glow �
+  // shadowBlur is the single most expensive draw call here, and up to ~25
+  // "past" threads can be isGlow:true and simultaneously awake during a
+  // drag. Desktop is untouched.
+  const wantsGlow = th.color.isGlow && (!IS_COARSE_POINTER || th.isToday);
+  if (wantsGlow) { ctx.shadowColor = th.color.glow; ctx.shadowBlur = 10; }
+
+  if (th.isSleeping && th.cachedPaths) {
+      for (const h of th.cachedPaths.helixPaths) {
+          const grad = ctx.createLinearGradient(0, pts[h.s].y, 0, pts[h.e].y);
+          grad.addColorStop(0, th.color.base); grad.addColorStop(0.5, th.color.mid); grad.addColorStop(1, th.color.mid);
+          ctx.strokeStyle = grad; ctx.lineWidth = th.thickness * 0.52; ctx.lineCap = 'round'; ctx.globalAlpha = 0.85;
+          ctx.stroke(h.path);
+      }
+      for (const hl of th.cachedPaths.highlightPaths) {
+          ctx.strokeStyle = th.color.hi; ctx.globalAlpha = 0.32; ctx.lineWidth = th.thickness * 0.26;
+          ctx.stroke(hl.path);
+      }
+  } else {
+      const segments = isBroken ? [{ start: 0, end: th.breakIndex }, { start: th.breakIndex + 1, end: pts.length - 1 }] : [{ start: 0, end: pts.length - 1 }];
+      const vibForce = th.tension * th.tension * 1.8;
+      const pxArr = new Float32Array(pts.length);
+      for (let i = 0; i < pts.length; i++) pxArr[i] = pts[i].x + (vibForce > 0 ? Math.sin(time * 70 + i * 2.1) * vibForce : 0);
+
+      for (const seg of segments) {
+          const s = seg.start, e = seg.end;
+          if (e - s < 1) continue; 
+          const grad = ctx.createLinearGradient(0, pts[s].y, 0, pts[e].y);
+          grad.addColorStop(0, th.color.base); grad.addColorStop(0.5, th.color.mid); grad.addColorStop(1, th.color.mid);
+          ctx.strokeStyle = grad; ctx.lineWidth = th.thickness * 0.52; ctx.lineCap = 'round'; ctx.globalAlpha = 0.85;
+
+          for (let k = 0; k < 3; k++) {
+            ctx.beginPath();
+            const twistOffset = (k / 3) * Math.PI * 2;
+            const xs = new Float32Array(pts.length), ys = new Float32Array(pts.length);
+            for (let i = s; i <= e; i++) {
+              const helix = Math.sin((i / (pts.length - 1)) * 40 + twistOffset + th.phase * 3) * (th.thickness * 0.42);
+              xs[i] = pxArr[i] + helix; ys[i] = pts[i].y;
+            }
+            smoothPathTo(ctx, xs, ys, s, e);
+            ctx.stroke();
+          }
+          
+          ctx.beginPath();
+          {
+            const xs = new Float32Array(pts.length), ys = new Float32Array(pts.length);
+            for (let i = s; i <= e; i++) { xs[i] = pxArr[i]; ys[i] = pts[i].y; }
+            smoothPathTo(ctx, xs, ys, s, e);
+          }
+          ctx.strokeStyle = th.color.hi; ctx.globalAlpha = 0.32; ctx.lineWidth = th.thickness * 0.26; ctx.stroke();
+      }
+  }
+  ctx.restore();
+}
+
+function drawKnot(th, endPt, time) {
+  const c = th.color, s = th.thickness * 3.0, ten = th.tension; 
+  ctx.save();
+  const knotWantsGlow = c.isGlow && (!IS_COARSE_POINTER || th.isToday);
+  if (knotWantsGlow) { ctx.shadowColor = c.glow; ctx.shadowBlur = 12; }
+  ctx.translate(endPt.x, endPt.y);
+  
+  let wob = 0, bendA = 0;
+  if (!th.isSleeping) {
+      wob = Math.sin(time * (1.7 + ten * 8.0) + th.knotSeed * 10) * (1.0 + ten * 1.5);
+      bendA = Math.sin(time * (2.0 + ten * 12.0) + th.knotSeed * 6) * (1.6 + ten * 1.0);
+  }
+
+  ctx.beginPath();
+  ctx.ellipse(0, 4 + wob * 0.3, s * 0.55, s * 0.65, 0.3, 0, Math.PI * 2);
+  ctx.ellipse(-s * 0.25, 8, s * 0.4, s * 0.5, -0.4, 0, Math.PI * 2);
+  ctx.ellipse(s * 0.25, 9, s * 0.4, s * 0.5, 0.5, 0, Math.PI * 2);
+  const knotGrad = ctx.createRadialGradient(-2, 2, 1, 0, 6, s);
+  knotGrad.addColorStop(0, c.hi); knotGrad.addColorStop(0.5, c.mid); knotGrad.addColorStop(1, c.knot);
+  ctx.fillStyle = knotGrad; ctx.fill();
+
+  ctx.beginPath();
+  ctx.ellipse(0, 2, s * 0.5, s * 0.28, 0.15, 0, Math.PI * 2);
+  ctx.lineWidth = th.thickness * 0.48; ctx.strokeStyle = c.mid; ctx.globalAlpha = 0.9; ctx.stroke();
+
+  const tasselLen = s * 1.9;
+  for (let i = 0; i < 5; i++) {
+    const spread = ((i / 4) - 0.5) * s * (0.85 + ten * 0.4);
+    ctx.beginPath();
+    ctx.moveTo(spread * 0.3, 10);
+    ctx.quadraticCurveTo(spread * 0.8 + bendA, 10 + tasselLen * 0.55, spread + bendA * 1.4, 10 + tasselLen);
+    ctx.strokeStyle = i % 2 === 0 ? c.mid : c.base; ctx.lineWidth = th.thickness * 0.3; ctx.lineCap = 'round'; ctx.globalAlpha = 0.85; ctx.stroke();
+  }
+  ctx.restore();
+}
+
+function drawTopBar() {
+  if (!threads.length) return;
+  const barY = threads[0].topY, centerX = threads.find(t => t.isToday)?.x0 || W/2;
+  const pts = [];
+  for (let s = 0; s <= 80; s++) pts.push({ x: (s/80) * W, y: barY + Math.sin((s/80) * Math.PI) * 1.2 });
+
+  ctx.save();
+  for (let k = 0; k < 3; k++) {
+    ctx.beginPath();
+    for (let i = 0; i < pts.length; i++) {
+      const helix = Math.sin((i/(pts.length-1)) * 120 + ((k/3)*Math.PI*2)) * 1.4;
+      if (i === 0) ctx.moveTo(pts[i].x, pts[i].y + helix); else ctx.lineTo(pts[i].x, pts[i].y + helix);
+    }
+    // W can be transiently 0 during mobile resize/reflow (URL bar collapse,
+    // orientation change, keyboard open/close all fire extra resize events
+    // that desktop never triggers), which turned centerX/W into NaN/Infinity
+    // and crashed addColorStop. Guard it.
+    const grad = ctx.createLinearGradient(0, 0, W, 0), stop = W > 0 ? centerX / W : 0.5;
+    grad.addColorStop(0, '#c9540a'); grad.addColorStop(Math.max(stop - 0.01, 0), '#7a3a06');
+    grad.addColorStop(Math.min(stop + 0.01, 1), '#7a7a7a'); grad.addColorStop(1, '#3a3a3a');
+    ctx.strokeStyle = grad; ctx.lineWidth = 2.6; ctx.lineCap = 'round'; ctx.globalAlpha = 0.85; ctx.stroke();
+  }
+  ctx.restore();
+
+  for (const th of threads) {
+    ctx.save();
+    if (th.color.isGlow) { ctx.shadowColor = th.color.glow; ctx.shadowBlur = 8; }
+    ctx.beginPath(); ctx.ellipse(th.x0, barY, th.thickness * 0.85, th.thickness * 0.65, 0, 0, Math.PI * 2);
+    const g = ctx.createRadialGradient(th.x0 - 1, barY - 1, 0.5, th.x0, barY, th.thickness * 1.1);
+    g.addColorStop(0, th.color.hi); g.addColorStop(1, th.color.knot);
+    ctx.fillStyle = g; ctx.fill(); ctx.restore();
+  }
+}
+
+function render(time) {
+  ctx.fillStyle = '#060606';
+  ctx.fillRect(0, 0, W, canvasH);
+  drawTopBar();
+  for (const th of threads) {
+    drawRopeStrands(th, time);
+    drawKnot(th, th.particles[th.particles.length - 1], time);
+  }
+}
+
+/* ---------------------------------------------------------------------
+   ANIMATION LOOP
+--------------------------------------------------------------------- */
+let lastTs = null;
+function frame(ts) {
+  if (lastTs === null) lastTs = ts;
+  const dt = (ts - lastTs) / 1000; lastTs = ts; const time = ts / 1000;
+  
+  if (pointer.prevX > -9000) { pointer.vx = pointer.x - pointer.prevX; pointer.vy = pointer.y - pointer.prevY; }
+  
+  applyPointerForces(Math.min(dt, MAX_DT));
+  verletIntegrate(Math.min(dt, MAX_DT));
+  satisfyConstraints();
+  calculateTension(Math.min(dt, MAX_DT));
+
+  pointer.prevX = pointer.x; pointer.prevY = pointer.y;
+
+  render(time);
+  
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+</script>
+</body>
+</html>
